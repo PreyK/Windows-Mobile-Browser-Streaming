@@ -21,7 +21,7 @@ Aims to be a usable modern browser for windows mobile devices that anyone can in
 - [ ] Multitouch
 - [ ] Text input
 - [ ] Faster rendering (GPU?)
-- [ ] Faster transport
+- [ ] Faster & smarter transport (chunking?)
 - [ ] Configurable streaming quality (ondemand rendering?)
 - [ ] Audio playback forwarding
 - [ ] File uploads
