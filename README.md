@@ -1,7 +1,8 @@
 # Windows-Mobile-Browser-Streaming
 "Run" chromium on your windows phone
 
-Currently a proof of concept inspired by [browservice](https://github.com/ttalvitie/browservice).
+**Currently a proof of concept** inspired by [browservice](https://github.com/ttalvitie/browservice).
+**!!NO TEXT INPUT YET!!**
 
 This was hacked together in a few days, much of it is hardcoded & the code is pretty ugly (for now) but it works.
 
@@ -28,6 +29,7 @@ For now your phone and your server needs to be on the same network
 - [X] Connect from local network only (for now)
 
 ### What's needed
+- [ ] Auto finding the server if on local connection (UDP discovery packets)
 - [ ] Easy&secure remote connections via tunnels (Ngrok, ZeroTier..etc)
 - [ ] Auto scaling renderview based on screen resolution/rotation/UWP viewport
 - [ ] HiDPI
