@@ -30,7 +30,7 @@ For now your phone and your server needs to be on the same network
 
 ### What's needed
 - [ ] Auto finding the server if on local connection (UDP discovery packets)
-- [ ] Easy&secure remote connections via tunnels (Ngrok, ZeroTier..etc)
+- [ ] Easy&secure remote connections via tunnels (Ngrok, ZeroTier, serveo)
 - [ ] Auto scaling renderview based on screen resolution/rotation/UWP viewport
 - [ ] HiDPI
 - [ ] Multitouch
