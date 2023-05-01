@@ -11,9 +11,11 @@ When it grows up it aims to be a usable modern browser for windows mobile device
 
 ### How to try
 For now your phone and your server needs to be on the same network
-1. Run the server app on your PC
-2. Open the client app on your phone, enter the IP of the server (your PC's local IP in `ws://localip:8081` format) and click connect
-3. Navigate to a page or search using google
+
+1. Download the latest [release](https://github.com/PreyK/Windows-Mobile-Browser-Streaming/releases). 
+2. Run the server app on your PC
+3. Open the client app on your phone, enter the IP of the server (your PC's local IP in `ws://localip:8081` format) and click connect
+4. Navigate to a page or search using google
 
 
 
