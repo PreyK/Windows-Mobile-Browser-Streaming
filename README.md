@@ -37,6 +37,7 @@ For now your phone and your server needs to be on the same network
 - [ ] Audio playback forwarding
 - [ ] File uploads
 - [ ] File downloads
+- [ ] Camera & microphone
 
 ### What's needed after
 - [ ] Tabs
