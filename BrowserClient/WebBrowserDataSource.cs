@@ -64,17 +64,20 @@ namespace BrowserClient
             if (sock.State != WebSocketState.Open)
                 return;
 
-            var cp = new CommPacket();
-            cp.PType = PacketType.TouchDown;
 
-            var pd = new PointerPacket();
-            pd.pos = p;
-            pd.id = pointerId;
 
-            cp.JSONData = JsonConvert.SerializeObject(pd);
+            var cp = new CommPacket
+            {
+                PType = PacketType.TouchDown,
+                JSONData = JsonConvert.SerializeObject(new PointerPacket
+                {
+                    px = p.X,
+                    py = p.Y,
+                    id = pointerId
+                })
+            };
 
-            string PacketJSON = JsonConvert.SerializeObject(cp);
-            var encoded = Encoding.UTF8.GetBytes(PacketJSON);
+            var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
             var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
 
@@ -86,20 +89,22 @@ namespace BrowserClient
             if (sock.State != WebSocketState.Open)
                 return;
 
-            var cp = new CommPacket();
-            cp.PType = PacketType.TouchUp;
+            var cp = new CommPacket
+            {
+                PType = PacketType.TouchUp,
+                JSONData = JsonConvert.SerializeObject(new PointerPacket
+                {
+                    px = p.X,
+                    py = p.Y,
+                    id = pointerId
+                })
+            };
 
-            var pd = new PointerPacket();
-            pd.pos = p;
-            pd.id = pointerId;
-
-
-            cp.JSONData = JsonConvert.SerializeObject(pd);
-
-            string PacketJSON = JsonConvert.SerializeObject(cp);
-            var encoded = Encoding.UTF8.GetBytes(PacketJSON);
+            var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
             var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+
+
         }
         public async void TouchMove(Point p, uint pointerId)
         {
@@ -107,26 +112,30 @@ namespace BrowserClient
             if (sock.State != WebSocketState.Open)
                 return;
 
-            var cp = new CommPacket();
-            cp.PType = PacketType.TouchMoved;
 
-            var pd = new PointerPacket();
-            pd.pos = p;
-            pd.id = pointerId;
+            var cp = new CommPacket
+            {
+                PType = PacketType.TouchMoved,
+                JSONData = JsonConvert.SerializeObject(new PointerPacket
+                {
+                    px = p.X,
+                    py = p.Y,
+                    id = pointerId
+                })
+            };
 
-            cp.JSONData = JsonConvert.SerializeObject(pd);
-
-            string PacketJSON = JsonConvert.SerializeObject(cp);
-            var encoded = Encoding.UTF8.GetBytes(PacketJSON);
+            var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
             var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            
         }
 
 
     }
 
     public struct PointerPacket {
-        public Point pos;
+        public double px;
+        public double py;
         public uint id;
     }
 

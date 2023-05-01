@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Drawing.Imaging;
+using NgrokApi;
 
 namespace BrowserServer
 {
@@ -33,6 +34,7 @@ namespace BrowserServer
                 switch (packet.PType)
                 {
                     case PacketType.Navigation:
+
                         if (packet.JSONData.Contains("http") || packet.JSONData.Contains("https") || packet.JSONData.Contains("www") || packet.JSONData.Contains("chrome://") || packet.JSONData.Contains(".com"))
                         {
                             browser.LoadUrl(packet.JSONData);
@@ -42,6 +44,8 @@ namespace BrowserServer
                             browser.LoadUrl("https://www.google.com/search?q=" + packet.JSONData);
                         }
                         break;
+
+                    
                     case PacketType.SizeChange:
                         var jsonObject = JObject.Parse(packet.JSONData);
                         var w = jsonObject.Value<int>("Width");
@@ -56,16 +60,12 @@ namespace BrowserServer
 
                     case PacketType.TouchDown:
 
-
-
-                        var td_o = JObject.Parse(packet.JSONData);
-
-                        Console.WriteLine(td_o);
+                        var t_down = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var press = new TouchEvent()
                         {
-                            Id = 0,
-                            X = (float)td_o.Value<float>("X") * browser.Size.Width,
-                            Y = (float)td_o.Value<float>("Y") * browser.Size.Height,
+                            Id = (int)t_down.id,
+                            X = (float)t_down.px * browser.Size.Width,
+                            Y = (float)t_down.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Pressed,
@@ -74,31 +74,33 @@ namespace BrowserServer
                         break;
 
                     case PacketType.TouchUp:
-                        var tu_o = JObject.Parse(packet.JSONData);
-                        var tu_press = new TouchEvent()
+
+
+                        var t_up = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
+                        var up = new TouchEvent()
                         {
-                            Id = 0,
-                            X = (float)tu_o.Value<float>("X") * browser.Size.Width,
-                            Y = (float)tu_o.Value<float>("Y") * browser.Size.Height,
+                            Id = (int)t_up.id,
+                            X = (float)t_up.px * browser.Size.Width,
+                            Y = (float)t_up.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Released,
                         };
-
-                        browser.GetBrowser().GetHost().SendTouchEvent(tu_press);
+                        browser.GetBrowser().GetHost().SendTouchEvent(up);
                         break;
                     case PacketType.TouchMoved:
-                        var tm_o = JObject.Parse(packet.JSONData);
-                        var m_press = new TouchEvent()
+
+                        var t_move = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
+                        var move = new TouchEvent()
                         {
-                            Id = 0,
-                            X = (float)tm_o.Value<float>("X")*browser.Size.Width,
-                            Y = (float)tm_o.Value<float>("Y")* browser.Size.Height,
+                            Id = (int)t_move.id,
+                            X = (float)t_move.px * browser.Size.Width,
+                            Y = (float)t_move.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Moved,
                         };
-                        browser.GetBrowser().GetHost().SendTouchEvent(m_press);
+                        browser.GetBrowser().GetHost().SendTouchEvent(move);
                         break;
 
                     default:
@@ -111,8 +113,14 @@ namespace BrowserServer
         static void Main(string[] margs)
         {
             server = new WebSocketServer("ws://0.0.0.0:8081");
+            //ngrok compatible ngrok.exe tcp 8081 -> 
+            server.AllowForwardedRequest = true;
             server.AddWebSocketService<test>("/");
             server.Start();
+
+            //var ngrok = new Ngrok("");
+
+
 
             //https://www.snappymaria.com/misc/TouchEventTest.html
             const string testUrl = "https://www.snappymaria.com/misc/TouchEventTest.html";
@@ -229,12 +237,19 @@ namespace BrowserServer
 
     }
 
+    public struct PointerPacket
+    {
+        public double px;
+        public double py;
+        public uint id;
+    }
+
     public struct CommPacket
     {
         public PacketType PType;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
+        //[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
         public string JSONData;
-        public byte[] rawData;
+        //public byte[] rawData;
     }
     public enum PacketType
     {
