@@ -11,14 +11,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Drawing.Imaging;
 using NgrokApi;
+using System.Threading;
 
 namespace BrowserServer
 {
     class Program
     {
         static ChromiumWebBrowser browser;
-
-
         public class test : WebSocketBehavior
         {
             //tested on 950XL
@@ -63,7 +62,7 @@ namespace BrowserServer
                         var t_down = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var press = new TouchEvent()
                         {
-                            Id = (int)t_down.id,
+                            Id = (int)0,
                             X = (float)t_down.px * browser.Size.Width,
                             Y = (float)t_down.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -79,7 +78,7 @@ namespace BrowserServer
                         var t_up = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var up = new TouchEvent()
                         {
-                            Id = (int)t_up.id,
+                            Id = (int)0,
                             X = (float)t_up.px * browser.Size.Width,
                             Y = (float)t_up.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -93,7 +92,7 @@ namespace BrowserServer
                         var t_move = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var move = new TouchEvent()
                         {
-                            Id = (int)t_move.id,
+                            Id = (int)0,
                             X = (float)t_move.px * browser.Size.Width,
                             Y = (float)t_move.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -127,47 +126,61 @@ namespace BrowserServer
             var settings = new CefSettings()
             {
                 CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache"),
-
             };
+            
             settings.CefCommandLineArgs["touch-events"] = "enabled";
+            settings.LogSeverity = LogSeverity.Disable;
+            settings.MultiThreadedMessageLoop = true;
+
             Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
             browser = new ChromiumWebBrowser(testUrl);
 
             browser.Size = new System.Drawing.Size(1440 / 2, 1248);
-            browser.Paint += CefPaint;
+            //browser.Paint += CefPaint;
 
-            //Wait for the MainFrame to finish loading
-            browser.FrameLoadEnd += (sender, args) =>
-            {
-                //Wait for the MainFrame to finish loading
-                //  if (args.Frame.IsMain)
-                //  {
-                //       args.Frame.ExecuteJavaScriptAsync("alert('MainFrame finished loading');");
-                //  }
-            };
-            /*
-            SetInterval(async delegate {
-
-                var data = await browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg);
-                if(server!=null)
-                 server.WebSocketServices.Broadcast(data);
-
-
-            }, 33);
-            */
 
             Console.Clear();
             Console.WriteLine("Browser server is now running, you can connect to it via ws://");
 
+            var timer = new Timer(Callback, null, 0, 50);
+
+            //Dispose the timer
+           
+
             Console.ReadKey();
             Cef.Shutdown();
+            timer.Dispose();
         }
+        //todo: some smarter connection
+        //client ACK the image and sends a req for the next.
+        static void Callback(object state)
+        {
+           // Console.WriteLine("33ms");
+            //Your code here.
+            browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t => {
+                server.WebSocketServices.Broadcast(t.Result);
+                /*
+                using (FileStream fs = new FileStream(@"D:\\" + DateTime.Now.Ticks + ".jpg", FileMode.Create, FileAccess.ReadWrite))
+                {
+                    byte[] b = t.Result;
+                    fs.Write(b, 0, b.Length);
+                }
+                */
+
+            }
+            );
+        }
+
+        static int frameNum = 0;
         private static void CefPaint(object sender, OnPaintEventArgs e)
         {
+            frameNum++;
+            Console.WriteLine("RENDER FRAME"+frameNum.ToString());
+
             var browserImage = new Bitmap(e.Width, e.Height, 4 * e.Width, System.Drawing.Imaging.PixelFormat.Format32bppRgb, e.BufferHandle);
             byte[] bufferBytes;
             var encoderParameters = new EncoderParameters(1);
-            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 70L);
+            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 10L);
             using (MemoryStream stream = new MemoryStream())
             {
                 browserImage.Save(stream, GetEncoder(ImageFormat.Jpeg), encoderParameters);
@@ -187,54 +200,6 @@ namespace BrowserServer
             }
             return null;
         }
-
-        /*
-
-        public static byte[] GetBytes(CommPacket str)
-        {
-            int size = Marshal.SizeOf(str);
-            byte[] arr = new byte[size];
-
-            IntPtr ptr = IntPtr.Zero;
-            try
-            {
-                ptr = Marshal.AllocHGlobal(size);
-                Marshal.StructureToPtr(str, ptr, true);
-                Marshal.Copy(ptr, arr, 0, size);
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(ptr);
-            }
-            return arr;
-        }
-
-        public static T FromBytes<T>(byte[] arr) where T : struct
-        {
-            T str = default(T);
-
-            GCHandle h = default(GCHandle);
-
-            try
-            {
-                h = GCHandle.Alloc(arr, GCHandleType.Pinned);
-
-                str = Marshal.PtrToStructure<T>(h.AddrOfPinnedObject());
-
-            }
-            finally
-            {
-                if (h.IsAllocated)
-                {
-                    h.Free();
-                }
-            }
-
-            return str;
-        }
-        */
-
-
     }
 
     public struct PointerPacket
