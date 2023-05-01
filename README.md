@@ -1,7 +1,8 @@
 # Windows-Mobile-Browser-Streaming
 "Run" chromium on your windows phone
 
-Currently a proof of concept inspired by [browservice](https://github.com/ttalvitie/browservice).
+**Currently a proof of concept** inspired by [browservice](https://github.com/ttalvitie/browservice).
+**!!NO TEXT INPUT YET!!**
 
 This was hacked together in a few days, much of it is hardcoded & the code is pretty ugly (for now) but it works.
 
