@@ -104,9 +104,10 @@ namespace BrowserClient
 
 
             //e.poi
-            Debug.WriteLine( x* (size.Width/2) +" "+y*   (size.Height/2)  );
+          //  Debug.WriteLine( x* (size.Width/2) +" "+y*   (size.Height/2)  );
+         
 
-            ds.TouchDown(new Point(x * (size.Width/2), y * (size.Height / 2)), 0);
+            ds.TouchDown(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -129,9 +130,9 @@ namespace BrowserClient
 
 
             //e.poi
-            Debug.WriteLine(x * size.Width + " " + y * size.Width);
+           // Debug.WriteLine(x * size.Width + " " + y * size.Width);
 
-            ds.TouchUp(new Point(x * (size.Width / 2), y * (size.Height / 2)), 0);
+            ds.TouchUp(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -154,31 +155,22 @@ namespace BrowserClient
 
 
             //e.poi
-            Debug.WriteLine(x * size.Width + " " + y * size.Width);
+            //Debug.WriteLine(x+" "+y);
+            ds.TouchMove(new Point(x, y), e.Pointer.PointerId);
 
-            ds.TouchMove(new Point(x * (size.Width / 2), y * (size.Height / 2)), 0);
+         //   ds.TouchMove(new Point(x * (size.Width / 2), y * (size.Height / 2)), 0);
         }
-
-       
-
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-           
-
-
             ds = new WebBrowserDataSource();
             ds.DataRecived += (s, o) =>
             {
                 test.Source = ConvertToBitmapImage(o).Result;
             };
             ds.StartRecive(serverAddress.Text);
-
-
             connectRect.Visibility = Visibility.Collapsed;
             serverAddress.Visibility = Visibility.Collapsed;
             connectBtn.Visibility = Visibility.Collapsed;
-
-
         }
     }
 }

@@ -58,7 +58,7 @@ namespace BrowserClient
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        public async void TouchDown(Point p, int pointerId)
+        public async void TouchDown(Point p, uint pointerId)
         {
 
             if (sock.State != WebSocketState.Open)
@@ -66,14 +66,21 @@ namespace BrowserClient
 
             var cp = new CommPacket();
             cp.PType = PacketType.TouchDown;
-            cp.JSONData = JsonConvert.SerializeObject(p);
+
+            var pd = new PointerPacket();
+            pd.pos = p;
+            pd.id = pointerId;
+
+            cp.JSONData = JsonConvert.SerializeObject(pd);
 
             string PacketJSON = JsonConvert.SerializeObject(cp);
             var encoded = Encoding.UTF8.GetBytes(PacketJSON);
             var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+
+
         }
-        public async void TouchUp(Point p, int pointerId)
+        public async void TouchUp(Point p, uint pointerId)
         {
 
             if (sock.State != WebSocketState.Open)
@@ -81,14 +88,20 @@ namespace BrowserClient
 
             var cp = new CommPacket();
             cp.PType = PacketType.TouchUp;
-            cp.JSONData = JsonConvert.SerializeObject(p);
+
+            var pd = new PointerPacket();
+            pd.pos = p;
+            pd.id = pointerId;
+
+
+            cp.JSONData = JsonConvert.SerializeObject(pd);
 
             string PacketJSON = JsonConvert.SerializeObject(cp);
             var encoded = Encoding.UTF8.GetBytes(PacketJSON);
             var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
-        public async void TouchMove(Point p, int pointerId)
+        public async void TouchMove(Point p, uint pointerId)
         {
 
             if (sock.State != WebSocketState.Open)
@@ -96,7 +109,12 @@ namespace BrowserClient
 
             var cp = new CommPacket();
             cp.PType = PacketType.TouchMoved;
-            cp.JSONData = JsonConvert.SerializeObject(p);
+
+            var pd = new PointerPacket();
+            pd.pos = p;
+            pd.id = pointerId;
+
+            cp.JSONData = JsonConvert.SerializeObject(pd);
 
             string PacketJSON = JsonConvert.SerializeObject(cp);
             var encoded = Encoding.UTF8.GetBytes(PacketJSON);
@@ -105,6 +123,11 @@ namespace BrowserClient
         }
 
 
+    }
+
+    public struct PointerPacket {
+        public Point pos;
+        public uint id;
     }
 
     public struct CommPacket

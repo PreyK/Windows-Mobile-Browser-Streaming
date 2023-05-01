@@ -55,54 +55,49 @@ namespace BrowserServer
                         break;
 
                     case PacketType.TouchDown:
+
+
+
                         var td_o = JObject.Parse(packet.JSONData);
-                        // Console.WriteLine(packet.JSONData);
+
+                        Console.WriteLine(td_o);
                         var press = new TouchEvent()
                         {
                             Id = 0,
-                            X = (float)td_o.Value<float>("X"),
-                            Y = (float)td_o.Value<float>("Y"),
+                            X = (float)td_o.Value<float>("X") * browser.Size.Width,
+                            Y = (float)td_o.Value<float>("Y") * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Pressed,
-
                         };
-
                         browser.GetBrowser().GetHost().SendTouchEvent(press);
                         break;
 
                     case PacketType.TouchUp:
                         var tu_o = JObject.Parse(packet.JSONData);
-                        //  Console.WriteLine(packet.JSONData);
                         var tu_press = new TouchEvent()
                         {
                             Id = 0,
-                            X = (float)tu_o.Value<float>("X"),
-                            Y = (float)tu_o.Value<float>("Y"),
+                            X = (float)tu_o.Value<float>("X") * browser.Size.Width,
+                            Y = (float)tu_o.Value<float>("Y") * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Released,
-
                         };
 
                         browser.GetBrowser().GetHost().SendTouchEvent(tu_press);
                         break;
-
-
                     case PacketType.TouchMoved:
                         var tm_o = JObject.Parse(packet.JSONData);
-                        //    Console.WriteLine(packet.JSONData);
                         var m_press = new TouchEvent()
                         {
                             Id = 0,
-                            X = (float)tm_o.Value<float>("X"),
-                            Y = (float)tm_o.Value<float>("Y"),
+                            X = (float)tm_o.Value<float>("X")*browser.Size.Width,
+                            Y = (float)tm_o.Value<float>("Y")* browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
                             Pressure = 0,
                             Type = CefSharp.Enums.TouchEventType.Moved,
-
                         };
-
                         browser.GetBrowser().GetHost().SendTouchEvent(m_press);
                         break;
 
