@@ -3,7 +3,18 @@
 
 Currently a proof of concept inspired by [browservice](https://github.com/ttalvitie/browservice).
 
-Aims to be a usable modern browser for windows mobile devices that anyone can install on a PC (server) and have an up to date web browser on WP (client).
+This was hacked together in a few days, much of it is hardcoded & the code is pretty ugly (for now) but it works.
+
+When it grows up it aims to be a usable modern browser for windows mobile devices that anyone can install on a PC (server) and have an up to date web browser on WP (client).
+
+
+
+### How to try
+For now your phone and your server needs to be on the same network
+1. Run the server app on your PC
+2. Open the client app on your phone, enter the IP of the server (your PC's local IP in `ws://localip:8081` format) and click connect
+3. Navigate to a page or search using google
+
 
 
 ### What works
