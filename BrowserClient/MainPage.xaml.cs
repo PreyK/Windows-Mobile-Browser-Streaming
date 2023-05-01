@@ -72,13 +72,15 @@ namespace BrowserClient
 
         private void Test_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
-            Debug.WriteLine("sizechange");
+           // Debug.WriteLine("sizechange");
         }
 
         private void Page_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
             if(ds!=null)
             ds.SizeChange(e.NewSize);
+
+            Debug.WriteLine("sizechange"+e.NewSize);
         }
 
         private void Test_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
