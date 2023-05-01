@@ -1,0 +1,21 @@
+﻿<Page
+    x:Class="BrowserClient.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BrowserClient"
+    
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" SizeChanged="Page_SizeChanged">
+
+    <Grid>
+        <Image Name="test" HorizontalAlignment="Stretch"  Margin="0,0,0,0" VerticalAlignment="Stretch" PointerPressed="Test_PointerPressed" PointerReleased="Test_PointerReleased" PointerMoved="Test_PointerMoved"/>
+        <TextBox Name="urlBar" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Bottom" PlaceholderText="Navigate or search" KeyDown="TextBox_KeyDown" IsTextPredictionEnabled="False" />
+        <Rectangle Name="connectRect" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Fill="{ThemeResource SystemControlForegroundAccentBrush}"/>
+        
+        <Button Name="connectBtn" Content="Connect" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Center" Click="Button_Click"/>
+        <TextBox Name="serverAddress" HorizontalAlignment="Stretch" Margin="50,0,50,0" Text="ws://server:8081" VerticalAlignment="Center" IsTextPredictionEnabled="False" InputScope="Url" PlaceholderText="ws://server:8081"/>
+
+    </Grid>
+</Page>
