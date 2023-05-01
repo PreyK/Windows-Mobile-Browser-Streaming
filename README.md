@@ -36,7 +36,7 @@ For now your phone and your server needs to be on the same network
 - [ ] Multitouch
 - [ ] Text input
 - [ ] Faster rendering (GPU?)
-- [ ] Faster & smarter transport (chunking?)
+- [ ] Faster & smarter transport (chunking?, rawbytes?, SYN/ACK)
 - [ ] Configurable streaming quality (ondemand rendering?)
 - [ ] Audio playback forwarding
 - [ ] File uploads
