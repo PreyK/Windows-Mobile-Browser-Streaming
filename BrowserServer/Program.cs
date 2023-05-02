@@ -12,6 +12,8 @@ using Newtonsoft.Json.Linq;
 using System.Drawing.Imaging;
 using NgrokApi;
 using System.Threading;
+using System.Collections;
+using System.Linq;
 
 namespace BrowserServer
 {
@@ -78,7 +80,7 @@ namespace BrowserServer
                         var t_down = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var press = new TouchEvent()
                         {
-                            Id = (int)t_down.id,
+                            Id = (int)0,
                             X = (float)t_down.px * browser.Size.Width,
                             Y = (float)t_down.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -86,7 +88,65 @@ namespace BrowserServer
                             Type = CefSharp.Enums.TouchEventType.Pressed,
                         };
                         browser.GetBrowser().GetHost().SendTouchEvent(press);
-                        
+
+                        const string script =
+                 @"(function ()
+                    {
+                        var isText = false;
+                        var activeElement = document.activeElement;
+                        if (activeElement) {
+                            if (activeElement.tagName.toLowerCase() === 'textarea') {
+                                isText = true;
+                            } else {
+                                if (activeElement.tagName.toLowerCase() === 'input') {
+                                    if (activeElement.hasAttribute('type')) {
+                                        var inputType = activeElement.getAttribute('type').toLowerCase();
+                                        if (inputType === 'text' || inputType === 'email' || inputType === 'password' || inputType === 'tel' || inputType === 'number' || inputType === 'range' || inputType === 'search' || inputType === 'url') {
+                                            isText = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if(isText){
+
+                        }
+                        return isText;
+                    })();";
+
+                        var response = browser.EvaluateScriptAsync(script).ContinueWith(t =>
+                        {
+                         
+
+                            
+                                Console.WriteLine(t.Result.Result.ToString());
+                           
+                        });
+
+
+
+
+                       
+
+                       
+
+                        /*
+
+                        // var result = browser.EvaluateScriptAsync("(() => { var element = document.activeElement; return element.localName; })();").ContinueWith(t =>
+                        var result = browser.EvaluateScriptAsync("return 'asd';").ContinueWith(t =>
+                        {
+
+                            string[] arr = ((IEnumerable)t.Result.Result).Cast<object>()
+                                .Select(c => c.ToString())
+                                .ToArray();
+
+                            //Console.WriteLine(t.Result.Result);
+                            //server.WebSocketServices.Broadcast();
+                        }
+                        );
+
+    */
+
                         break;
 
                     case PacketType.TouchUp:
@@ -95,7 +155,7 @@ namespace BrowserServer
                         var t_up = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var up = new TouchEvent()
                         {
-                            Id = (int)t_up.id,
+                            Id = (int)0,
                             X = (float)t_up.px * browser.Size.Width,
                             Y = (float)t_up.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -109,7 +169,7 @@ namespace BrowserServer
                         var t_move = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
                         var move = new TouchEvent()
                         {
-                            Id = (int)t_move.id,
+                            Id = (int)0,
                             X = (float)t_move.px * browser.Size.Width,
                             Y = (float)t_move.py * browser.Size.Height,
                             PointerType = CefSharp.Enums.PointerType.Touch,
@@ -125,6 +185,8 @@ namespace BrowserServer
                 }
             }
         }
+
+        
         static WebSocketServer server;
         static IFrame mainFrame;
         static void Main(string[] margs)
