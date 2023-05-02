@@ -19,6 +19,9 @@ namespace BrowserServer
 {
     class Program
     {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern short VkKeyScan(char ch);
+
         static ChromiumWebBrowser browser;
         public class test : WebSocketBehavior
         {
@@ -109,27 +112,29 @@ namespace BrowserServer
                             }
                         }
                         if(isText){
-
+document.activeElement.value+='I AM TEXT! aer éáp';
                         }
                         return isText;
                     })();";
-
                         var response = browser.EvaluateScriptAsync(script).ContinueWith(t =>
                         {
-                         
 
-                            
-                                Console.WriteLine(t.Result.Result.ToString());
-                           
+
+                        if((bool)t.Result.Result){
+                                /*
+                                //browser.GetBrowser().GetHost().ImeCommitText("words", null, 0);  // run successfully, but no effect.
+                                //Console.WriteLine("i am a text input");
+                               browser.GetBrowser().GetHost().SendKeyEvent(new KeyEvent {
+                                    Type = KeyEventType.Char,
+                                    WindowsKeyCode = ConvertCharToVirtualKey('é'),
+                                   
+                                   
+                                    
+                                });
+                                 */
+                            }
+
                         });
-
-
-
-
-                       
-
-                       
-
                         /*
 
                         // var result = browser.EvaluateScriptAsync("(() => { var element = document.activeElement; return element.localName; })();").ContinueWith(t =>
@@ -186,7 +191,18 @@ namespace BrowserServer
             }
         }
 
-        
+        public static int ConvertCharToVirtualKey(char ch)
+        {
+            short vkey = VkKeyScan(ch);
+            int retval = (int)(vkey & 0xff);
+            int modifiers = vkey >> 8;
+
+            
+
+            return retval;
+        }
+
+
         static WebSocketServer server;
         static IFrame mainFrame;
         static void Main(string[] margs)
