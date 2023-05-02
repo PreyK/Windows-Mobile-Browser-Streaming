@@ -18,12 +18,14 @@ namespace BrowserClient
         public event EventHandler<byte[]> DataRecived;
         public async void StartRecive(string addr)
         {
-             sock = new ClientWebSocket();
+            sock = new ClientWebSocket();
 
             await sock.ConnectAsync(new Uri(addr), CancellationToken.None);
 
-            //5mb should be enough
-            ArraySegment<byte> readbuffer = new ArraySegment<byte>(new byte[5000000]);
+            //2mb should be enough
+            ArraySegment<byte> readbuffer = new ArraySegment<byte>(new byte[2000000]);
+            
+
             while (sock.State == WebSocketState.Open)
             {
                 var res = await sock.ReceiveAsync(readbuffer, CancellationToken.None);
@@ -130,7 +132,21 @@ namespace BrowserClient
             
         }
 
+        public async void ACKRender()
+        {
+            if (sock.State != WebSocketState.Open)
+                return;
 
+
+            var cp = new CommPacket
+            {
+                PType = PacketType.ACK
+            };
+
+            var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
+            var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+            await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
     }
 
     public struct PointerPacket {
@@ -152,6 +168,7 @@ namespace BrowserClient
         SizeChange,
         TouchDown,
         TouchUp,
-        TouchMoved
+        TouchMoved,
+        ACK
     }
 }

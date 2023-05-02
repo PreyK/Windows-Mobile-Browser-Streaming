@@ -166,6 +166,7 @@ namespace BrowserClient
             ds.DataRecived += (s, o) =>
             {
                 test.Source = ConvertToBitmapImage(o).Result;
+               // ds.ACKRender();
             };
             ds.StartRecive(serverAddress.Text);
             connectRect.Visibility = Visibility.Collapsed;
