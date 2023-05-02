@@ -149,6 +149,7 @@ namespace BrowserClient
         }
     }
 
+    /*
     public struct PointerPacket {
         public double px;
         public double py;
@@ -171,4 +172,5 @@ namespace BrowserClient
         TouchMoved,
         ACK
     }
+    */
 }

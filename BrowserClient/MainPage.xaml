@@ -9,13 +9,24 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" SizeChanged="Page_SizeChanged">
 
-    <Grid>
-        <Image Name="test" HorizontalAlignment="Stretch"  Margin="0,0,0,0" VerticalAlignment="Stretch" PointerPressed="Test_PointerPressed" PointerReleased="Test_PointerReleased" PointerMoved="Test_PointerMoved"/>
-        <TextBox Name="urlBar" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Bottom" PlaceholderText="Navigate or search" KeyDown="TextBox_KeyDown" IsTextPredictionEnabled="False" />
-        <Rectangle Name="connectRect" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Fill="{ThemeResource SystemControlForegroundAccentBrush}"/>
-        
-        <Button Name="connectBtn" Content="Connect" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Center" Click="Button_Click"/>
-        <TextBox Name="serverAddress" HorizontalAlignment="Stretch" Margin="50,0,50,0" Text="ws://server:8081" VerticalAlignment="Center" IsTextPredictionEnabled="False" InputScope="Url" PlaceholderText="ws://server:8081"/>
+    <Grid Name="mainGrid" SizeChanged="MainGrid_SizeChanged">
 
+        <Grid Name="browser" SizeChanged="Browser_SizeChanged">
+            <Image Name="test" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" PointerPressed="Test_PointerPressed" PointerReleased="Test_PointerReleased" PointerMoved="Test_PointerMoved"/>
+        </Grid>
+            
+        <TextBox Visibility="Collapsed" Name="urlBar" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Bottom" PlaceholderText="Navigate or search" KeyDown="TextBox_KeyDown" IsTextPredictionEnabled="False" Background="{ThemeResource SystemControlBackgroundAccentBrush}" InputScope="Url" />
+        <Grid Name="ConnectPage" Visibility="Visible">
+            <Rectangle Name="connectRect" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Fill="{ThemeResource SystemControlForegroundAccentBrush}"/>
+            <Button Name="connectBtn" Content="Connect" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Center" Click="Button_Click"/>
+            <Button Name="discoverBtn" Content="Discover" HorizontalAlignment="Center" Margin="0,200,0,0" VerticalAlignment="Center" Click="DiscoverBtn_Click"/>
+            <TextBox Name="serverAddress" HorizontalAlignment="Stretch" Margin="50,0,50,0" Text="ws://server:8081" VerticalAlignment="Center" IsTextPredictionEnabled="False" InputScope="Url" PlaceholderText="ws://server:8081"/>
+           
+        </Grid>
+        <Grid Name="DiscoveryPage" Visibility="Collapsed">
+            <Rectangle Name="dicoverRect" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Fill="{ThemeResource SystemControlForegroundAccentBrush}"/>
+            <TextBlock HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Text="discovering, please wait.." />
+           
+        </Grid>
     </Grid>
 </Page>

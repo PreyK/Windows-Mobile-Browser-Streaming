@@ -11,12 +11,24 @@ using Windows.UI.Xaml;
 using Windows.Graphics.Display;
 using Windows.Foundation;
 using Windows.UI.Input;
+using System.Text;
+using System.Net.Sockets;
+using System.Threading;
+using System.Net;
+using BrowserClient;
+using Newtonsoft.Json;
+using Windows.Networking.Sockets;
+
 namespace BrowserClient
 {
     public sealed partial class MainPage : Page
     {
         WebBrowserDataSource ds;
+        public UdpClient sendingClient;
+        public UdpClient recivingClient;
 
+        public string broadcastAddress = "255.255.255.255";
+        Timer UdpDiscoveryTimer;
         public MainPage()
         {
             this.InitializeComponent();
@@ -25,7 +37,7 @@ namespace BrowserClient
                 Windows.UI.ViewManagement.StatusBar statusBar = Windows.UI.ViewManagement.StatusBar.GetForCurrentView();
                 statusBar.HideAsync();
             }
-            
+
         }
         public async Task<BitmapImage> ConvertToBitmapImage(byte[] image)
         {
@@ -72,41 +84,25 @@ namespace BrowserClient
 
         private void Test_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
-           // Debug.WriteLine("sizechange");
+            Debug.WriteLine("sizechange");
         }
 
         private void Page_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
-            if(ds!=null)
-            ds.SizeChange(e.NewSize);
+            //if(ds!=null)
+            //ds.SizeChange(e.NewSize);
 
-            Debug.WriteLine("sizechange"+e.NewSize);
+            // Debug.WriteLine("sizechange"+e.NewSize);
         }
 
         private void Test_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-           
+
             var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
             var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
             var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-
-            //var p =  e.GetCurrentPoint(test);
-            //e.GetCurrentPoint(null)
-
-
-
-            
-            //e.GetCurrentPoint(null)
-            var x = e.GetCurrentPoint(null).Position.X/bounds.Width;
-            var y = e.GetCurrentPoint(null).Position.Y/bounds.Height;
-
-
-
-
-            //e.poi
-          //  Debug.WriteLine( x* (size.Width/2) +" "+y*   (size.Height/2)  );
-         
-
+            var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
+            var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
             ds.TouchDown(new Point(x, y), e.Pointer.PointerId);
         }
 
@@ -115,23 +111,8 @@ namespace BrowserClient
             var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
             var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
             var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-
-            //var p =  e.GetCurrentPoint(test);
-            //e.GetCurrentPoint(null)
-
-
-
-
-            //e.GetCurrentPoint(null)
             var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
             var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
-
-
-
-
-            //e.poi
-           // Debug.WriteLine(x * size.Width + " " + y * size.Width);
-
             ds.TouchUp(new Point(x, y), e.Pointer.PointerId);
         }
 
@@ -140,25 +121,9 @@ namespace BrowserClient
             var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
             var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
             var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-
-            //var p =  e.GetCurrentPoint(test);
-            //e.GetCurrentPoint(null)
-
-
-
-
-            //e.GetCurrentPoint(null)
             var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
             var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
-
-
-
-
-            //e.poi
-            //Debug.WriteLine(x+" "+y);
             ds.TouchMove(new Point(x, y), e.Pointer.PointerId);
-
-         //   ds.TouchMove(new Point(x * (size.Width / 2), y * (size.Height / 2)), 0);
         }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -166,12 +131,113 @@ namespace BrowserClient
             ds.DataRecived += (s, o) =>
             {
                 test.Source = ConvertToBitmapImage(o).Result;
-               // ds.ACKRender();
+                // ds.ACKRender();
             };
+            ConnectPage.Visibility = Visibility.Collapsed;
             ds.StartRecive(serverAddress.Text);
-            connectRect.Visibility = Visibility.Collapsed;
-            serverAddress.Visibility = Visibility.Collapsed;
-            connectBtn.Visibility = Visibility.Collapsed;
+        }
+
+        private void MainGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+
+        }
+
+        private void Browser_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Debug.WriteLine("SIZE!!!!");
+            if (ds != null)
+            {
+                ds.SizeChange(e.NewSize);
+            }
+
+        }
+        public bool discovering = false;
+
+        DatagramSocket serverDatagramSocket;
+
+        private void DiscoverBtn_Click(object sender, RoutedEventArgs e)
+        {
+            
+            //TODO:
+            //1336 & 1337 for UDP ports, 5454X is out of specon UWP?
+            int udpPort = 54545;
+            int udpRecPort = 54546;
+
+
+            ConnectPage.Visibility = Visibility.Collapsed;
+            DiscoveryPage.Visibility = Visibility.Visible;
+
+            sendingClient = new UdpClient(udpPort);
+            sendingClient.EnableBroadcast = true;
+
+
+            recivingClient = new UdpClient(udpRecPort);
+            
+
+
+            //3 seconds
+            UdpDiscoveryTimer = new Timer(state =>
+            {
+                try
+                {
+                    //datagram discovery, we broadcast that we WANT an adress
+                    var packet = new DiscoveryPacket
+                    {
+                        PType = DiscoveryPacketType.AddressRequest,
+                    };
+                    var rawPacket = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet));
+                    sendingClient.SendAsync(rawPacket, rawPacket.Length, new System.Net.IPEndPoint(IPAddress.Parse("255.255.255.255"), udpPort));
+                }
+                catch (Exception) { }
+            }, null, 0, 3000);
+
+            discovering = true;
+
+            serverDatagramSocket = new Windows.Networking.Sockets.DatagramSocket();
+
+            // The ConnectionReceived event is raised when connections are received.
+            serverDatagramSocket.MessageReceived += ServerDatagramSocket_MessageReceived;
+        
+            // Start listening for incoming TCP connections on the specified port. You can specify any port that's not currently in use.
+             serverDatagramSocket.BindServiceNameAsync("1337");
+
+        }
+
+        private void ServerDatagramSocket_MessageReceived(DatagramSocket sender, DatagramSocketMessageReceivedEventArgs args)
+        {
+            string request;
+            using (DataReader dataReader = args.GetDataReader())
+            {
+                request = dataReader.ReadString(dataReader.UnconsumedBufferLength).Trim();
+            }
+            Debug.WriteLine(request);
+
+            var packet = JsonConvert.DeserializeObject<DiscoveryPacket>(request);
+
+            switch (packet.PType)
+            {
+                case DiscoveryPacketType.AddressRequest:
+                    break;
+                case DiscoveryPacketType.ACK:
+                    Debug.WriteLine("ws://" + packet.ServerAddress + ":8081");
+
+                    Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                        ds = new WebBrowserDataSource();
+                        ds.DataRecived += (s, o) =>
+                        {
+                            test.Source = ConvertToBitmapImage(o).Result;
+                            // ds.ACKRender();
+                        };
+                        ConnectPage.Visibility = Visibility.Collapsed;
+                        DiscoveryPage.Visibility = Visibility.Collapsed;
+                        urlBar.Visibility = Visibility.Visible;
+                        ds.StartRecive("ws://" + packet.ServerAddress + ":8081");
+                        serverDatagramSocket.Dispose();
+                    });
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

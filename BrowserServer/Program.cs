@@ -14,15 +14,16 @@ using NgrokApi;
 using System.Threading;
 using System.Collections;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace BrowserServer
 {
     class Program
     {
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern short VkKeyScan(char ch);
-
         static ChromiumWebBrowser browser;
+
+
         public class test : WebSocketBehavior
         {
             //tested on 950XL
@@ -190,19 +191,7 @@ document.activeElement.value+='I AM TEXT! aer éáp';
                 }
             }
         }
-
-        public static int ConvertCharToVirtualKey(char ch)
-        {
-            short vkey = VkKeyScan(ch);
-            int retval = (int)(vkey & 0xff);
-            int modifiers = vkey >> 8;
-
-            
-
-            return retval;
-        }
-
-
+        
         static WebSocketServer server;
         static IFrame mainFrame;
         static void Main(string[] margs)
@@ -233,13 +222,29 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
             browser = new ChromiumWebBrowser(testUrl);
             browser.Size = new System.Drawing.Size(1440 / 2, 1248);
-            browser.RenderProcessMessageHandler = new RenderProcessMessageHandler();
+            //browser.RenderProcessMessageHandler = new RenderProcessMessageHandler();
             //  browser.Paint += CefPaint;
 
 
             Console.Clear();
-            Console.WriteLine("Browser server is now running, you can connect to it via ws://");
+            Console.WriteLine("Browser server is now running, you can connect to it via ws://"+NetworkManager.GetLocalIPAddress()+":8081");
+            Console.WriteLine("Or click the Discovery button in the UWP app to autimatically find the server on your local network");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Alternatively you can set up ngrok to acess the server over internet, to do this follow the steps below");
+            Console.WriteLine("1. Set up a ngrok account at https://ngrok.com/");
+            Console.WriteLine("2. download ngrok (it's just one self-contained .exe file)");
+            Console.WriteLine("3. open a command prompt (cmd.exe) in the location where you have the ngrok.exe file");
+            Console.WriteLine("4. open https://dashboard.ngrok.com/get-started/setup and run the command with your ngrok auth token under section 2. Connect your account");
+            Console.WriteLine("5. you should get back \"Authtoken saved to configuration file\"");
+            Console.WriteLine("6. run the following command: ngrok tcp 8081");
+            Console.WriteLine("7. you'll need the url starting with tcp://");
+            Console.WriteLine("8. enter the url in the UWP application as the server adress and connect.");
+            Console.WriteLine("9. congratulations! you just connected over the internet");
+            //Console.WriteLine("3. add your ngrok auth-token https://dashboard.ngrok.com/get-started/setup");
+            //Console.WriteLine("for example in your command ");
 
+            NetworkManager.StartUdpDiscoveryServer();
             var timer = new Timer(Callback, null, 0, 50);
 
             //Dispose the timer
@@ -299,58 +304,5 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             }
             return null;
         }
-    }
-
-    public class RenderProcessMessageHandler : IRenderProcessMessageHandler
-    {
-        // Wait for the underlying `Javascript Context` to be created, this is only called for the main frame.
-        // If the page has no javascript, no context will be created.
-        void IRenderProcessMessageHandler.OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame)
-        {
-            const string script = "document.addEventListener('DOMContentLoaded', function(){ alert('DomLoaded'); });";
-
-            frame.ExecuteJavaScriptAsync(script);
-        }
-
-        void IRenderProcessMessageHandler.OnFocusedNodeChanged(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IDomNode node)
-        {
-            var message = node == null ? "lost focus" : node.ToString();
-
-            Console.WriteLine("OnFocusedNodeChanged() - " + message);
-        }
-
-        void IRenderProcessMessageHandler.OnContextReleased(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame)
-        {
-            //The V8Context is about to be released, use this notification to cancel any long running tasks your might have
-        }
-
-        void IRenderProcessMessageHandler.OnUncaughtException(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, JavascriptException exception)
-        {
-            Console.WriteLine("OnUncaughtException() - " + exception.Message);
-        }
-    }
-
-    public struct PointerPacket
-    {
-        public double px;
-        public double py;
-        public uint id;
-    }
-
-    public struct CommPacket
-    {
-        public PacketType PType;
-        //[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
-        public string JSONData;
-        //public byte[] rawData;
-    }
-    public enum PacketType
-    {
-        Navigation,
-        SizeChange,
-        TouchDown,
-        TouchUp,
-        TouchMoved,
-        ACK
     }
 }
