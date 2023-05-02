@@ -127,6 +127,8 @@ namespace BrowserClient
         }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+
+            //    tcp:// = ws://
             ds = new WebBrowserDataSource();
             ds.DataRecived += (s, o) =>
             {
@@ -222,6 +224,9 @@ namespace BrowserClient
                     Debug.WriteLine("ws://" + packet.ServerAddress + ":8081");
 
                     Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                        //replace with a connect function
+                        serverDatagramSocket.Dispose();
+
                         ds = new WebBrowserDataSource();
                         ds.DataRecived += (s, o) =>
                         {
@@ -232,7 +237,7 @@ namespace BrowserClient
                         DiscoveryPage.Visibility = Visibility.Collapsed;
                         urlBar.Visibility = Visibility.Visible;
                         ds.StartRecive("ws://" + packet.ServerAddress + ":8081");
-                        serverDatagramSocket.Dispose();
+                        
                     });
                     break;
                 default:
