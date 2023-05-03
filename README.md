@@ -40,6 +40,7 @@ For now your phone and your server needs to be on the same network
 - [ ] File uploads
 - [ ] File downloads
 - [ ] Camera & microphone
+- [ ] Notifications
 
 ### What's needed after
 - [ ] Tabs
