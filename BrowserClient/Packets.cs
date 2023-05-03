@@ -13,13 +13,26 @@ namespace BrowserClient
         public uint id;
     }
 
+    public struct TextPacket
+    {
+        public TextPacketType PType;
+        public string text;
+    }
+
     public struct CommPacket
     {
         public PacketType PType;
-        //[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
         public string JSONData;
-        //public byte[] rawData;
     }
+
+    public enum TextPacketType
+    {
+        NavigatedUrl,
+        TextInputContent,
+        TextInputSend,
+        TextInputCancel
+    }
+
     public enum PacketType
     {
         Navigation,
@@ -27,7 +40,11 @@ namespace BrowserClient
         TouchDown,
         TouchUp,
         TouchMoved,
-        ACK
+        ACK,
+        Frame,
+        TextInputSend,
+        NavigateForward,
+        NavigateBack
     }
     public struct DiscoveryPacket
     {

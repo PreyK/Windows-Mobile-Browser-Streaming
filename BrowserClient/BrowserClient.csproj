@@ -142,6 +142,9 @@
     <None Include="BrowserClient_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\left-arrow.png" />
+    <Content Include="Assets\right-arrow.png" />
+    <Content Include="Assets\send.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

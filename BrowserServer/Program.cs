@@ -16,6 +16,8 @@ using System.Collections;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using CefSharp.Enums;
 
 namespace BrowserServer
 {
@@ -45,6 +47,24 @@ namespace BrowserServer
                 switch (packet.PType)
                 {
 
+                    case PacketType.TextInputSend:
+                        Console.WriteLine(packet.JSONData);
+                        var textscript = @"(function (){document.activeElement.value='"+packet.JSONData+"'})();";
+
+                        var textres = browser.EvaluateScriptAsync(textscript).ContinueWith(t =>{
+                            
+                            browser.GetBrowserHost().SendKeyEvent(new KeyEvent {
+                                WindowsKeyCode = 0x0D,
+                                FocusOnEditableField = true,
+                                IsSystemKey = false,
+                                Type = KeyEventType.RawKeyDown
+                            });
+                           
+                        });
+
+                        break;
+
+
                     case PacketType.ACK:
                         Console.WriteLine("ACK");
                         //  browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t => {
@@ -65,6 +85,15 @@ namespace BrowserServer
                         break;
 
 
+                    case PacketType.NavigateBack:
+                        if (browser.CanGoBack) browser.Back();
+                        break;
+                    case PacketType.NavigateForward:
+                        if (browser.CanGoForward) browser.Forward();
+                        break;
+
+
+
                     case PacketType.SizeChange:
                         var jsonObject = JObject.Parse(packet.JSONData);
                         var w = jsonObject.Value<int>("Width");
@@ -78,7 +107,7 @@ namespace BrowserServer
                         break;
 
 
-                        //stale multitouch, track touches on cliend only and forward them....
+                    //stale multitouch, track touches on cliend only and forward them....
                     case PacketType.TouchDown:
 
                         var t_down = JsonConvert.DeserializeObject<PointerPacket>(packet.JSONData);
@@ -92,66 +121,7 @@ namespace BrowserServer
                             Type = CefSharp.Enums.TouchEventType.Pressed,
                         };
                         browser.GetBrowser().GetHost().SendTouchEvent(press);
-
-                        const string script =
-                 @"(function ()
-                    {
-                        var isText = false;
-                        var activeElement = document.activeElement;
-                        if (activeElement) {
-                            if (activeElement.tagName.toLowerCase() === 'textarea') {
-                                isText = true;
-                            } else {
-                                if (activeElement.tagName.toLowerCase() === 'input') {
-                                    if (activeElement.hasAttribute('type')) {
-                                        var inputType = activeElement.getAttribute('type').toLowerCase();
-                                        if (inputType === 'text' || inputType === 'email' || inputType === 'password' || inputType === 'tel' || inputType === 'number' || inputType === 'range' || inputType === 'search' || inputType === 'url') {
-                                            isText = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if(isText){
-document.activeElement.value+='I AM TEXT! aer éáp';
-                        }
-                        return isText;
-                    })();";
-                        var response = browser.EvaluateScriptAsync(script).ContinueWith(t =>
-                        {
-
-
-                        if((bool)t.Result.Result){
-                                /*
-                                //browser.GetBrowser().GetHost().ImeCommitText("words", null, 0);  // run successfully, but no effect.
-                                //Console.WriteLine("i am a text input");
-                               browser.GetBrowser().GetHost().SendKeyEvent(new KeyEvent {
-                                    Type = KeyEventType.Char,
-                                    WindowsKeyCode = ConvertCharToVirtualKey('é'),
-                                   
-                                   
-                                    
-                                });
-                                 */
-                            }
-
-                        });
-                        /*
-
-                        // var result = browser.EvaluateScriptAsync("(() => { var element = document.activeElement; return element.localName; })();").ContinueWith(t =>
-                        var result = browser.EvaluateScriptAsync("return 'asd';").ContinueWith(t =>
-                        {
-
-                            string[] arr = ((IEnumerable)t.Result.Result).Cast<object>()
-                                .Select(c => c.ToString())
-                                .ToArray();
-
-                            //Console.WriteLine(t.Result.Result);
-                            //server.WebSocketServices.Broadcast();
-                        }
-                        );
-
-    */
+                        
 
                         break;
 
@@ -183,7 +153,7 @@ document.activeElement.value+='I AM TEXT! aer éáp';
                             Type = CefSharp.Enums.TouchEventType.Moved,
                         };
                         browser.GetBrowser().GetHost().SendTouchEvent(move);
-                       // Console.WriteLine(move.Id);
+                        // Console.WriteLine(move.Id);
                         break;
 
                     default:
@@ -191,7 +161,7 @@ document.activeElement.value+='I AM TEXT! aer éáp';
                 }
             }
         }
-        
+
         static WebSocketServer server;
         static IFrame mainFrame;
         static void Main(string[] margs)
@@ -203,15 +173,12 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             server.Start();
 
             //var ngrok = new Ngrok("");
-
-
-
             //https://www.snappymaria.com/misc/TouchEventTest.html
             const string testUrl = "https://www.snappymaria.com/misc/TouchEventTest.html";
             var settings = new CefSettings()
             {
                 CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache"),
-                
+
             };
 
             //https://gist.github.com/jankurianski/f3419d4580517516c24b?
@@ -222,12 +189,15 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
             browser = new ChromiumWebBrowser(testUrl);
             browser.Size = new System.Drawing.Size(1440 / 2, 1248);
+            browser.LoadingStateChanged += Browser_LoadingStateChanged;
+            browser.RenderHandler = new TestRHI(browser);
+            //browser.
             //browser.RenderProcessMessageHandler = new RenderProcessMessageHandler();
             //  browser.Paint += CefPaint;
 
 
             Console.Clear();
-            Console.WriteLine("Browser server is now running, you can connect to it via ws://"+NetworkManager.GetLocalIPAddress()+":8081");
+            Console.WriteLine("Browser server is now running, you can connect to it via ws://" + NetworkManager.GetLocalIPAddress() + ":8081");
             Console.WriteLine("Or click the Discovery button in the UWP app to autimatically find the server on your local network");
             Console.WriteLine();
             Console.WriteLine();
@@ -254,6 +224,20 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             Cef.Shutdown();
             timer.Dispose();
         }
+
+        private static void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
+        {
+            if (e.IsLoading)
+            {
+                var cp = new TextPacket
+                {
+                    PType = TextPacketType.NavigatedUrl,
+                    text = browser.Address
+                };
+                server.WebSocketServices.Broadcast(JsonConvert.SerializeObject(cp));
+            }
+        }
+
         //todo: some smarter connection
         //client ACK the image and sends a req for the next.
 
@@ -262,14 +246,26 @@ document.activeElement.value+='I AM TEXT! aer éáp';
         {
             try
             {
+
                 browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t =>
                 {
+                    /*
+                    var cp = new CommPacket
+                    {
+                        PType = PacketType.Frame,
+                        rawData = t.Result
+                    };
+                    var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
+                    server.WebSocketServices.Broadcast(encoded);
+                    */
                     server.WebSocketServices.Broadcast(t.Result);
+                    //Console.WriteLine("broadcast2");
                 }
                 );
             }
             catch (Exception)
             {
+                throw;
                 //die silently
             }
         }
@@ -304,5 +300,46 @@ document.activeElement.value+='I AM TEXT! aer éáp';
             }
             return null;
         }
+
+
+        //TODO: accelerated Draw
+        // Forward the renderbuffer from here instead of screenshot?
+        public class TestRHI : DefaultRenderHandler
+        {
+            private ChromiumWebBrowser browser;
+
+            public TestRHI(ChromiumWebBrowser browser) : base(browser)
+            {
+                this.browser = browser;
+            }
+
+            public override void OnVirtualKeyboardRequested(IBrowser browser, TextInputMode inputMode)
+            {
+                base.OnVirtualKeyboardRequested(browser, inputMode);
+
+
+                Console.WriteLine("Virtual Keyboard Requested for "+inputMode);
+                if (inputMode == TextInputMode.None)
+                {
+                    server.WebSocketServices.Broadcast(JsonConvert.SerializeObject(new TextPacket
+                    {
+                        PType = TextPacketType.TextInputCancel
+                    }));
+                }
+                else
+                {
+                    var response = browser.EvaluateScriptAsync(JavascriptFunctions.GetActiveElementText).ContinueWith(t =>
+                    {
+                        Console.WriteLine((string)t.Result.Result);
+                        server.WebSocketServices.Broadcast(JsonConvert.SerializeObject(new TextPacket
+                        {
+                            PType = TextPacketType.TextInputContent,
+                            text = (string)t.Result.Result
+                        }));
+                    });
+                }
+            }
+        }
+
     }
 }

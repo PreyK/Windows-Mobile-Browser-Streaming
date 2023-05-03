@@ -76,6 +76,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JavascriptFunctions.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="Packets.cs" />
     <Compile Include="Program.cs" />

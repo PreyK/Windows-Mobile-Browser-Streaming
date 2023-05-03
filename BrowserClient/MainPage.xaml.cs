@@ -39,22 +39,6 @@ namespace BrowserClient
             }
 
         }
-        public async Task<BitmapImage> ConvertToBitmapImage(byte[] image)
-        {
-            BitmapImage bitmapimage = null;
-            using (InMemoryRandomAccessStream ms = new InMemoryRandomAccessStream())
-            {
-                using (DataWriter writer = new DataWriter(ms.GetOutputStreamAt(0)))
-                {
-                    writer.WriteBytes((byte[])image);
-                    await writer.StoreAsync();
-                }
-                bitmapimage = new BitmapImage();
-                bitmapimage.SetSource(ms);
-            }
-            return bitmapimage;
-        }
-
         private void LoseFocus(object sender)
         {
             var control = sender as Control;
@@ -68,7 +52,7 @@ namespace BrowserClient
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
-                var url = urlBar.Text;
+                var url = urlField.Text;
                 ds.Navigate(url);
                 e.Handled = true; LoseFocus(sender);
             }
@@ -89,54 +73,105 @@ namespace BrowserClient
 
         private void Page_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
-            //if(ds!=null)
-            //ds.SizeChange(e.NewSize);
-
-            // Debug.WriteLine("sizechange"+e.NewSize);
+           
         }
 
         private void Test_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
+         
 
-            var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
-            var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
-            var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-            var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
-            var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
+
+            var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
+            var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
+
             ds.TouchDown(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
-            var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
-            var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-            var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
-            var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
+           
+            var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
+            var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
+
+            
+
             ds.TouchUp(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
-            var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
-            var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
-            var x = e.GetCurrentPoint(null).Position.X / bounds.Width;
-            var y = e.GetCurrentPoint(null).Position.Y / bounds.Height;
+          
+
+            var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
+            var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
+
+
             ds.TouchMove(new Point(x, y), e.Pointer.PointerId);
         }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-
-            //    tcp:// = ws://
-            ds = new WebBrowserDataSource();
-            ds.DataRecived += (s, o) =>
-            {
-                test.Source = ConvertToBitmapImage(o).Result;
-                // ds.ACKRender();
-            };
+            Connect(serverAddress.Text);
             ConnectPage.Visibility = Visibility.Collapsed;
-            ds.StartRecive(serverAddress.Text);
+        }
+
+        public void Connect(string endpoint)
+        {
+            ds = new WebBrowserDataSource();
+            ds.FrameRecived += (s, o) =>
+            {
+                test.Source = o;
+            };
+            ds.StartRecive(endpoint);
+            ds.TextPacketRecived += (s, o) =>
+            {
+                switch (o.PType)
+                {
+                    case TextPacketType.NavigatedUrl:
+                        urlField.Text = o.text;
+                        //hack to get proper size on first launch
+                        ds.SizeChange(new Size { Width = ScaleRect.ActualWidth, Height = ScaleRect.ActualHeight });
+                        break;
+                    case TextPacketType.TextInputContent:
+                        NavbarGrid.Visibility = Visibility.Collapsed;
+                        TextInput.Visibility = Visibility.Visible;
+                        
+                        websiteTextBox.Text = o.text;
+                        websiteTextBox.Select(websiteTextBox.Text.Length, 0);
+                        websiteTextBox.Focus(FocusState.Programmatic);
+                        break;
+                    case TextPacketType.TextInputSend:
+
+                        break;
+                    case TextPacketType.TextInputCancel:
+                        TextInput.Visibility = Visibility.Collapsed;
+                        NavbarGrid.Visibility = Visibility.Visible;
+                        websiteTextBox.Text = "";
+
+                       // test.Focus(FocusState.Programmatic);
+                        break;
+                   
+                }
+            };            
+        }
+
+        private void WebsiteTextBox_KeyDown(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                ds.SendText(websiteTextBox.Text);
+                TextInput.Visibility = Visibility.Collapsed;
+                NavbarGrid.Visibility = Visibility.Visible;
+                websiteTextBox.Text = "";
+
+                e.Handled = true; LoseFocus(sender);
+            }
+        }
+        private void SendText_Click(object sender, RoutedEventArgs e)
+        {
+            ds.SendText(websiteTextBox.Text);
+            TextInput.Visibility = Visibility.Collapsed;
+            NavbarGrid.Visibility = Visibility.Visible;
+            websiteTextBox.Text = "";
         }
 
         private void MainGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -146,10 +181,19 @@ namespace BrowserClient
 
         private void Browser_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            var bounds = ApplicationView.GetForCurrentView().VisibleBounds;
+            var scaleFactor = DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
+            var size = new Size(bounds.Width * scaleFactor, bounds.Height * scaleFactor);
+            Debug.WriteLine("AD"+ScaleRect.ActualWidth + " " + ScaleRect.ActualHeight);
+
             Debug.WriteLine("SIZE!!!!");
             if (ds != null)
             {
-                ds.SizeChange(e.NewSize);
+                var s = e.NewSize;
+                s.Width = ScaleRect.ActualWidth;
+                s.Height = ScaleRect.ActualHeight;
+
+                ds.SizeChange(s);
             }
 
         }
@@ -225,24 +269,39 @@ namespace BrowserClient
 
                     Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
                         //replace with a connect function
+                        UdpDiscoveryTimer.Dispose();
                         serverDatagramSocket.Dispose();
 
+
+                        Connect("ws://" + packet.ServerAddress + ":8081");
+                        /*
                         ds = new WebBrowserDataSource();
                         ds.DataRecived += (s, o) =>
                         {
                             test.Source = ConvertToBitmapImage(o).Result;
                             // ds.ACKRender();
                         };
+                        */
                         ConnectPage.Visibility = Visibility.Collapsed;
                         DiscoveryPage.Visibility = Visibility.Collapsed;
-                        urlBar.Visibility = Visibility.Visible;
-                        ds.StartRecive("ws://" + packet.ServerAddress + ":8081");
+                        NavbarGrid.Visibility = Visibility.Visible;
+                       // ds.StartRecive("ws://" + packet.ServerAddress + ":8081");
                         
                     });
                     break;
                 default:
                     break;
             }
+        }
+
+        private void NavigateBack_Click(object sender, RoutedEventArgs e)
+        {
+            ds.NavigateBack();
+        }
+
+        private void NavigateForward_Click(object sender, RoutedEventArgs e)
+        {
+            ds.NavigateForward();
         }
     }
 }
