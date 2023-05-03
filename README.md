@@ -2,7 +2,6 @@
 "Run" chromium on your windows phone
 
 **Currently a proof of concept** inspired by [browservice](https://github.com/ttalvitie/browservice).
-**!!NO TEXT INPUT YET!!**
 
 This was hacked together in a few days, much of it is hardcoded & the code is pretty ugly (for now) but it works.
 
@@ -29,12 +28,13 @@ For now your phone and your server needs to be on the same network
 - [X] Connect from local network only (for now)
 
 ### What's needed
-- [ ] Auto finding the server if on local connection (UDP discovery packets)
-- [ ] Easy&secure remote connections via tunnels (Ngrok, ZeroTier, serveo)
-- [ ] Auto scaling renderview based on screen resolution/rotation/UWP viewport
+- [X] Auto finding the server if on local connection (UDP discovery packets)
+- [X] Easy&secure remote connections via tunnels (Ngrok, ZeroTier, serveo)
+- [X] Auto scaling renderview based on screen resolution/rotation/UWP viewport
 - [ ] HiDPI
 - [ ] Multitouch
-- [ ] Text input
+- [X] Text input (basic, still WIP)
+- [x] Auto save the last server address
 - [ ] Faster rendering (GPU?)
 - [ ] Faster & smarter transport (chunking?, rawbytes?, SYN/ACK)
 - [ ] Configurable streaming quality (ondemand rendering?)
@@ -49,3 +49,11 @@ For now your phone and your server needs to be on the same network
 - [ ] Back/Forward
 - [ ] General browser stuff
 - [ ] Continuum support/verify
+
+
+### How can you help
+* XAML! I don't like XAML. If you are a seasoned UWP/XAML/Windows Phone developer feel free to suggest changes.
+* UWP peformance & memory management. Yes, C# has GC so one might as well use it but still. If you have any cool tips on how can I make the UWP app faster besides getting down the memory allocations let me know.
+* We need a real name for the project
+* Report issues you encounter on the GitHub page
+* I don't do much user-facing stuff, If you find this useful and have the time make guides/tutorials for the less tech-savy :) 
