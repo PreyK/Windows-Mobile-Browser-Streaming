@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,6 +93,11 @@ namespace BrowserServer
                 }
             }
             throw new Exception("No network adapters with an IPv4 address in the system!");
+        }
+
+        public static bool IsUrl(string s)
+        {
+            return Regex.IsMatch(s, @"^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$");
         }
         //helpers
     }

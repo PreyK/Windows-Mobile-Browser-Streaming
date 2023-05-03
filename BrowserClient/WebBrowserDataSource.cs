@@ -22,6 +22,11 @@ namespace BrowserClient
         public event EventHandler<TextPacket> TextPacketRecived;
         public async void StartRecive(string addr)
         {
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+            // Create a simple setting.
+            localSettings.Values["LastServerUrl"] = addr ;
+
             sock = new ClientWebSocket();
 
             await sock.ConnectAsync(new Uri(addr), CancellationToken.None);

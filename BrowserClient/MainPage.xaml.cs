@@ -18,6 +18,7 @@ using System.Net;
 using BrowserClient;
 using Newtonsoft.Json;
 using Windows.Networking.Sockets;
+using Windows.Storage;
 
 namespace BrowserClient
 {
@@ -36,6 +37,18 @@ namespace BrowserClient
             {
                 Windows.UI.ViewManagement.StatusBar statusBar = Windows.UI.ViewManagement.StatusBar.GetForCurrentView();
                 statusBar.HideAsync();
+            }
+            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+            if (localSettings.Values.ContainsKey("LastServerUrl"))
+            {
+                Debug.WriteLine("Has key");
+                Debug.WriteLine(localSettings.Values["LastServerUrl"] as string);
+                serverAddress.Text = localSettings.Values["LastServerUrl"] as string;
+            }
+            else
+            {
+                Debug.WriteLine("No known server");
             }
 
         }

@@ -24,22 +24,14 @@ namespace BrowserServer
     class Program
     {
         static ChromiumWebBrowser browser;
-
-
+        
         public class test : WebSocketBehavior
         {
             //tested on 950XL
             public static int ScalingFactor = 2;
-
             protected override void OnOpen()
             {
                 browser.Reload();
-                //send first frame
-                // browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t => {
-                //     server.WebSocketServices.Broadcast(t.Result);
-                //  }
-                //  );
-
             }
             protected override void OnMessage(MessageEventArgs e)
             {
@@ -74,6 +66,17 @@ namespace BrowserServer
                         break;
                     case PacketType.Navigation:
 
+
+                        Console.WriteLine(NetworkManager.IsUrl(packet.JSONData));
+                        if (NetworkManager.IsUrl(packet.JSONData))
+                        {
+                            browser.LoadUrl(packet.JSONData);
+                        }
+                        else
+                        {
+                            browser.LoadUrl("https://www.google.com/search?q=" + packet.JSONData);
+                        }
+                        /*
                         if (packet.JSONData.Contains("http") || packet.JSONData.Contains("https") || packet.JSONData.Contains("www") || packet.JSONData.Contains("chrome://") || packet.JSONData.Contains(".com"))
                         {
                             browser.LoadUrl(packet.JSONData);
@@ -82,8 +85,10 @@ namespace BrowserServer
                         {
                             browser.LoadUrl("https://www.google.com/search?q=" + packet.JSONData);
                         }
-                        break;
+                       
+                        */
 
+                        break;
 
                     case PacketType.NavigateBack:
                         if (browser.CanGoBack) browser.Back();
@@ -174,7 +179,7 @@ namespace BrowserServer
 
             //var ngrok = new Ngrok("");
             //https://www.snappymaria.com/misc/TouchEventTest.html
-            const string testUrl = "https://www.snappymaria.com/misc/TouchEventTest.html";
+            const string testUrl = "https://www.google.com/";
             var settings = new CefSettings()
             {
                 CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache"),
@@ -330,7 +335,20 @@ namespace BrowserServer
                 {
                     var response = browser.EvaluateScriptAsync(JavascriptFunctions.GetActiveElementText).ContinueWith(t =>
                     {
+
+                        https://learn.microsoft.com/hu-hu/windows/win32/api/winuser/nf-winuser-vkkeyscanexa?redirectedfrom=MSDN
+
+                        /*
                         Console.WriteLine((string)t.Result.Result);
+                        this.browser.GetBrowserHost().SendKeyEvent(new KeyEvent
+                        {
+                            WindowsKeyCode = 0x41,
+                            FocusOnEditableField = false,
+                            IsSystemKey = false,
+                            Type = KeyEventType.Char
+                        });
+                        Console.WriteLine("sent key");
+                        */
                         server.WebSocketServices.Broadcast(JsonConvert.SerializeObject(new TextPacket
                         {
                             PType = TextPacketType.TextInputContent,
