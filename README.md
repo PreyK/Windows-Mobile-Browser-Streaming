@@ -24,8 +24,6 @@ For now your phone and your server needs to be on the same network
 - [x] Render buffer forwarding to a UWP client
 - [x] Navigation events from UWP client
 - [x] Touch input events (only 1 for now) from UWP client
-- [X] Portrait orientation only for now
-- [X] Connect from local network only (for now)
 
 ### What's needed
 - [X] Auto finding the server if on local connection (UDP discovery packets)
