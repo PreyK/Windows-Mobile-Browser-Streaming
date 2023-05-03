@@ -123,7 +123,7 @@ namespace BrowserClient
         }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Connect(serverAddress.Text);
+            Connect(serverAddress.Text.Replace("tcp://", "ws://"));
             ConnectPage.Visibility = Visibility.Collapsed;
         }
 
