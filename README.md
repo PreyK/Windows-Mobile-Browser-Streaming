@@ -49,3 +49,11 @@ For now your phone and your server needs to be on the same network
 - [ ] Back/Forward
 - [ ] General browser stuff
 - [ ] Continuum support/verify
+
+
+### How can you help
+* XAML! I don't like XAML. If you are a seasoned UWP/XAML/Windows Phone developer feel free to suggest changes.
+* UWP peformance & memory management. Yes, C# has GC so one might as well use it but still. If you have any cool tips on how can I make the UWP app faster besides getting down the memory allocations let me know.
+* We need a real name for the project
+* Report issues you encounter on the GitHub page
+* I don't do much user-facing stuff, If you find this useful and have the time make guides/tutorials for the less tech-savy :) 
