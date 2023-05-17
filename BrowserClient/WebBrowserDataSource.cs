@@ -105,6 +105,23 @@ namespace BrowserClient
             await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
+        public async void SendKey(Windows.UI.Xaml.Input.KeyRoutedEventArgs key)
+        {
+
+           
+            if (sock.State != WebSocketState.Open)
+                return;
+
+            var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new CommPacket
+            {
+                PType = PacketType.SendKey,
+                JSONData = JsonConvert.SerializeObject(key.Key)
+            }));
+
+            var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+            await sock.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+
         public async void SizeChange(Windows.Foundation.Size newSize)
         {
 
@@ -126,7 +143,6 @@ namespace BrowserClient
 
             if (sock.State != WebSocketState.Open)
                 return;
-
 
 
             var cp = new CommPacket
@@ -240,29 +256,4 @@ namespace BrowserClient
             return bitmapimage;
         }
     }
-
-    /*
-    public struct PointerPacket {
-        public double px;
-        public double py;
-        public uint id;
-    }
-
-    public struct CommPacket
-    {
-        public PacketType PType;
-        //[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100)]
-        public string JSONData;
-        //public byte[] rawData;
-    }
-    public enum PacketType
-    {
-        Navigation,
-        SizeChange,
-        TouchDown,
-        TouchUp,
-        TouchMoved,
-        ACK
-    }
-    */
 }

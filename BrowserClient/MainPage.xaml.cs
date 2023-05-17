@@ -63,6 +63,7 @@ namespace BrowserClient
         }
         private void TextBox_KeyDown(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
+            
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
                 var url = urlField.Text;
@@ -91,34 +92,22 @@ namespace BrowserClient
 
         private void Test_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-         
-
-
             var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
             var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
-
             ds.TouchDown(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-           
             var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
             var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
-
-            
-
             ds.TouchUp(new Point(x, y), e.Pointer.PointerId);
         }
 
         private void Test_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-          
-
             var x = e.GetCurrentPoint(null).Position.X / ScaleRect.ActualWidth;
             var y = e.GetCurrentPoint(null).Position.Y / ScaleRect.ActualHeight;
-
-
             ds.TouchMove(new Point(x, y), e.Pointer.PointerId);
         }
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -144,31 +133,32 @@ namespace BrowserClient
                         //hack to get proper size on first launch
                         ds.SizeChange(new Size { Width = ScaleRect.ActualWidth, Height = ScaleRect.ActualHeight });
                         break;
+
                     case TextPacketType.TextInputContent:
                         NavbarGrid.Visibility = Visibility.Collapsed;
                         TextInput.Visibility = Visibility.Visible;
-                        
                         websiteTextBox.Text = o.text;
                         websiteTextBox.Select(websiteTextBox.Text.Length, 0);
                         websiteTextBox.Focus(FocusState.Programmatic);
                         break;
-                    case TextPacketType.TextInputSend:
 
+                    case TextPacketType.TextInputSend:
                         break;
+
                     case TextPacketType.TextInputCancel:
                         TextInput.Visibility = Visibility.Collapsed;
                         NavbarGrid.Visibility = Visibility.Visible;
                         websiteTextBox.Text = "";
-
-                       // test.Focus(FocusState.Programmatic);
                         break;
-                   
                 }
             };            
         }
 
         private void WebsiteTextBox_KeyDown(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
+            ds.SendKey(e);
+         //   Debug.WriteLine(e.Key);
+
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
                 ds.SendText(websiteTextBox.Text);

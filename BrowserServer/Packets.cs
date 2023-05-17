@@ -44,7 +44,8 @@ namespace BrowserServer
         Frame,
         TextInputSend,
         NavigateForward,
-        NavigateBack
+        NavigateBack,
+        SendKey
     }
     public struct DiscoveryPacket
     {

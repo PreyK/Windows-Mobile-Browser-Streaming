@@ -48,7 +48,18 @@ return document.activeElement.value;
 }
 )();
 ";
+
+public static string GetFocusActiveElementText = @"(
+
+function ()
+{
+document.activeElement.focus();
+return document.activeElement.value;
 }
+)();
+";
+
+    }
 
 
 

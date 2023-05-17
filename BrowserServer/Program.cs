@@ -38,7 +38,6 @@ namespace BrowserServer
                 var packet = JsonConvert.DeserializeObject<CommPacket>(e.Data);
                 switch (packet.PType)
                 {
-
                     case PacketType.TextInputSend:
                         Console.WriteLine(packet.JSONData);
                         var textscript = @"(function (){document.activeElement.value='"+packet.JSONData+"'})();";
@@ -53,20 +52,31 @@ namespace BrowserServer
                             });
                            
                         });
-
                         break;
 
 
                     case PacketType.ACK:
                         Console.WriteLine("ACK");
-                        //  browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t => {
-                        //     server.WebSocketServices.Broadcast(t.Result);
-                        // });
-
                         break;
+
+
+                    case PacketType.SendKey:
+                        Console.WriteLine(packet.JSONData+"KEY");
+                        
+                        browser.GetBrowserHost().SendKeyEvent(new KeyEvent
+                        {
+                            WindowsKeyCode = int.Parse(packet.JSONData),
+                            FocusOnEditableField = false,
+                            IsSystemKey = false,
+                            Type = KeyEventType.Char
+                        });
+                        
+                        
+                        //JsonConvert.DeserializeObject< Windows.System.VirtualKey>()á
+                        
+                        break;
+
                     case PacketType.Navigation:
-
-
                         Console.WriteLine(NetworkManager.IsUrl(packet.JSONData));
                         if (NetworkManager.IsUrl(packet.JSONData))
                         {
@@ -76,18 +86,7 @@ namespace BrowserServer
                         {
                             browser.LoadUrl("https://www.google.com/search?q=" + packet.JSONData);
                         }
-                        /*
-                        if (packet.JSONData.Contains("http") || packet.JSONData.Contains("https") || packet.JSONData.Contains("www") || packet.JSONData.Contains("chrome://") || packet.JSONData.Contains(".com"))
-                        {
-                            browser.LoadUrl(packet.JSONData);
-                        }
-                        else
-                        {
-                            browser.LoadUrl("https://www.google.com/search?q=" + packet.JSONData);
-                        }
-                       
-                        */
-
+                  
                         break;
 
                     case PacketType.NavigateBack:
@@ -171,6 +170,7 @@ namespace BrowserServer
         static IFrame mainFrame;
         static void Main(string[] margs)
         {
+            
             server = new WebSocketServer("ws://0.0.0.0:8081");
             //ngrok compatible ngrok.exe tcp 8081 -> 
             server.AllowForwardedRequest = true;
@@ -224,6 +224,8 @@ namespace BrowserServer
 
             //Dispose the timer
 
+           // KeyFinder.TestKeys();
+
 
             Console.ReadKey();
             Cef.Shutdown();
@@ -254,17 +256,7 @@ namespace BrowserServer
 
                 browser.CaptureScreenshotAsync(CefSharp.DevTools.Page.CaptureScreenshotFormat.Jpeg, 70).ContinueWith(t =>
                 {
-                    /*
-                    var cp = new CommPacket
-                    {
-                        PType = PacketType.Frame,
-                        rawData = t.Result
-                    };
-                    var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cp));
-                    server.WebSocketServices.Broadcast(encoded);
-                    */
                     server.WebSocketServices.Broadcast(t.Result);
-                    //Console.WriteLine("broadcast2");
                 }
                 );
             }
@@ -335,20 +327,21 @@ namespace BrowserServer
                 {
                     var response = browser.EvaluateScriptAsync(JavascriptFunctions.GetActiveElementText).ContinueWith(t =>
                     {
-
-                        https://learn.microsoft.com/hu-hu/windows/win32/api/winuser/nf-winuser-vkkeyscanexa?redirectedfrom=MSDN
+                    //https://stackoverflow.com/questions/544141/how-to-convert-a-character-in-to-equivalent-system-windows-input-key-enum-value
+                    //https://learn.microsoft.com/hu-hu/windows/win32/api/winuser/nf-winuser-vkkeyscanexa?redirectedfrom=MSDN
 
                         /*
                         Console.WriteLine((string)t.Result.Result);
                         this.browser.GetBrowserHost().SendKeyEvent(new KeyEvent
                         {
-                            WindowsKeyCode = 0x41,
+                            WindowsKeyCode = 65,
                             FocusOnEditableField = false,
                             IsSystemKey = false,
                             Type = KeyEventType.Char
                         });
                         Console.WriteLine("sent key");
-                        */
+                        
+    */
                         server.WebSocketServices.Broadcast(JsonConvert.SerializeObject(new TextPacket
                         {
                             PType = TextPacketType.TextInputContent,
